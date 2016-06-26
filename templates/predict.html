@@ -1,0 +1,11 @@
+<!doctype html>
+{% if filename %}
+  <h2>Result</h2>
+  <div>Label: {{label}} (score={{score}})</div>
+  <h2>Uploaded file</h2>
+  <div><img src="/uploads/{{filename}}"></div>
+  <br/>
+  <div><a href="/upload">Back</a></div>
+{% else %}
+  <h1>No image</h1>
+{% endif %}
