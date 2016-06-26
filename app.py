@@ -114,6 +114,7 @@ def uploaded_file(filename):
 
 @app.route('/predict')
 def predict():
+    # Do not use .eval(). It does not work.
     resized_img = sess.run(resized_image, feed_dict={fname: upload_filename})
     logits_value = sess.run(logits, feed_dict={x: resized_img.reshape(-1, IMAGE_PIXELS), keep_prob: 1.0})[0]
     label = np.argmax(logits_value)
