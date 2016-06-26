@@ -43,6 +43,17 @@ app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 APP_ROOT = os.path.dirname(os.path.abspath(__file__)) 
 
+x = tf.placeholder("float", shape=(None, IMAGE_PIXELS))
+keep_prob = tf.placeholder("float")
+logits = tf_cnn_model.inference(x, keep_prob)
+fname = tf.placeholder("string")
+resized_image = load_image(fname)
+upload_filename = os.path.join(app.config['UPLOAD_FOLDER'], 'tmp.jpg')
+sess = tf.Session()
+saver = tf.train.Saver()
+sess.run(tf.initialize_all_variables())
+saver.restore(sess, os.path.join(APP_ROOT, "model.ckpt"))
+
 
 # http://stackoverflow.com/questions/13768007/browser-caching-issues-in-flask
 @app.after_request
@@ -103,19 +114,8 @@ def uploaded_file(filename):
 
 @app.route('/predict')
 def predict():
-    x = tf.placeholder("float", shape=(None, IMAGE_PIXELS))
-    keep_prob = tf.placeholder("float")
-    logits = tf_cnn_model.inference(x, keep_prob)
-    fname = tf.placeholder("string")
-    resized_image = load_image(fname)
-    upload_filename = os.path.join(app.config['UPLOAD_FOLDER'], 'tmp.jpg')
-    with tf.Session() as sess:
-        saver = tf.train.Saver()
-        sess.run(tf.initialize_all_variables())
-        saver.restore(sess, os.path.join(APP_ROOT, "model.ckpt"))
-        upload_filename = os.path.join(app.config['UPLOAD_FOLDER'], 'tmp.jpg')
-        resized_img = resized_image.eval(feed_dict={fname: upload_filename})
-        logits_value = logits.eval(feed_dict={x: resized_img.reshape(-1, IMAGE_PIXELS), keep_prob: 1.0})[0]
+    resized_img = sess.run(resized_image, feed_dict={fname: upload_filename})
+    logits_value = sess.run(logits, feed_dict={x: resized_img.reshape(-1, IMAGE_PIXELS), keep_prob: 1.0})[0]
     label = np.argmax(logits_value)
     score = logits_value[label]
     return render_template('predict.html', filename='tmp.jpg', label=label, score=score)
