@@ -116,7 +116,7 @@ def uploaded_file(filename):
 def predict():
     # Do not use .eval(). It does not work.
     resized_img = sess.run(resized_image, feed_dict={fname: upload_filename})
-    logits_value = sess.run(logits, feed_dict={x: resized_img.reshape(-1, IMAGE_PIXELS), keep_prob: 1.0})[0]
+    logits_value = sess.run(logits, feed_dict={x: resized_img.reshape(-1, IMAGE_PIXELS) / 255.0, keep_prob: 1.0})[0]
     label = np.argmax(logits_value)
     score = logits_value[label]
     return render_template('predict.html', filename='tmp.jpg', label=label, score=score)
