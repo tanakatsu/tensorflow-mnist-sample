@@ -3,6 +3,8 @@ import tensorflow as tf
 import multiprocessing as mp
 from flask import Flask, render_template, redirect, url_for, request, send_from_directory
 import numpy as np
+import base64
+import re
 import tf_cnn_model
 # from werkzeug import secure_filename
 
@@ -41,7 +43,7 @@ else:
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-APP_ROOT = os.path.dirname(os.path.abspath(__file__)) 
+APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 x = tf.placeholder("float", shape=(None, IMAGE_PIXELS))
 keep_prob = tf.placeholder("float")
@@ -69,7 +71,8 @@ def add_header(response):
 
 @app.route('/')
 def index():
-    return redirect(url_for('upload'))
+    # return redirect(url_for('upload'))
+    return redirect(url_for('upload2'))  # hand writing
 
 
 @app.route('/hello')
@@ -120,6 +123,26 @@ def predict():
     label = np.argmax(logits_value)
     score = logits_value[label]
     return render_template('predict.html', filename='tmp.jpg', label=label, score=score)
+
+
+@app.route('/upload2')
+def upload2():
+        return render_template('upload2.html')
+
+
+@app.route('/uploader2', methods=['POST'])
+def uploader2():
+    if request.method == 'POST':
+        image_enc = request.form['image_base64']
+        image_str = re.sub(r'^data:.+;base64,', '', image_enc)
+        image_dec = base64.b64decode(image_str)
+        with open('tmp.jpg', 'wb') as f:
+            f.write(image_dec)
+            return redirect(url_for('predict'))
+
+        return '''
+        <h3>image file is not attached</h3>
+        '''
 
 if __name__ == '__main__':
     app.debug = True

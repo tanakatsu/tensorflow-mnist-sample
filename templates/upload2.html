@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <style type="text/css">
+      canvas {
+        border: solid 1px #c0c0c0;
+      }
+    </style>
+    <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+  </head>
+  <body>
+    <h1>MNIST Prediction</h1>
+    <form action="/uploader2" method="POST">
+      <button onclick="clearCanvas();return false;">clear</button>
+      <button type="submit">save</button>
+      <input type="hidden" name="image_base64" id="image_base64" />
+    </form>
+
+    <canvas id="myCanvas" width="240" height="240"></canvas>
+    <!--
+    <img src='' id="image_test" />
+    -->
+    <script>
+$(function() {
+  $("form").submit(function() {
+    var base64 = canvas.toDataURL('image/jpeg'); 
+    $("#image_base64").val(base64);
+    $("#image_test").attr('src', base64);
+    return true;
+  });
+});
+
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d");
+// http://stackoverflow.com/questions/26742180/canvas-todataurl-results-in-solid-black-image
+ctx.lineWidth = 15;
+ctx.fillStyle = "rgb(0, 0, 0)";
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+ctx.strokeStyle = "rgb(255, 255, 255)";
+
+var mouseX = null;
+var mouseY = null;
+
+canvas.addEventListener('mousemove', onMove, false);
+canvas.addEventListener('mousedown', onClick, false);
+canvas.addEventListener('mouseup', drawEnd, false);
+canvas.addEventListener('mouseout', drawEnd, false);
+canvas.addEventListener('touchstart', touchStart, false);
+canvas.addEventListener('touchmove', touchMove, false);
+canvas.addEventListener('touchend', touchEnd, false);
+
+function onMove(e) {
+  if (e.buttons === 1) {
+    var rect = e.target.getBoundingClientRect();
+    var X = e.clientX - rect.left;
+    var Y = e.clientY - rect.top;
+    draw(X, Y);
+  };
+}
+
+function onClick(e) {
+  if (e.button === 0) {
+    var rect = e.target.getBoundingClientRect();
+    var X = e.clientX - rect.left;
+    var Y = e.clientY - rect.top;
+    draw(X, Y);
+  }
+}
+
+function drawEnd(e) {
+  mouseX = null;
+  mouseY = null;
+}
+
+function draw(x, y) {
+  ctx.beginPath();
+  //マウス継続値によって場合分け、直線の moveTo（スタート地点）を決定
+  if (mouseX === null) {
+    //継続値が初期値の場合は、現在のマウス位置をスタート位置とする
+    ctx.moveTo(x, y);
+  } else {
+    //継続値が初期値ではない場合は、前回のゴール位置を次のスタート位置とする
+    ctx.moveTo(mouseX, mouseY);
+  }
+  //lineTo（ゴール地点）の決定、現在のマウス位置をゴール地点とする
+  ctx.lineTo(x, y);
+  ctx.stroke();
+  //マウス継続値に現在のマウス位置、つまりゴール位置を代入
+  mouseX = x;
+  mouseY = y;
+}
+
+function clearCanvas() {
+  //ctx.clearRect(0, 0, canvas.width, canvas.height); // 白でクリア
+
+  // 黒でクリア
+  ctx.beginPath();
+  ctx.fillStyle = "rgb(0, 0, 0)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function touchStart(e) {
+  var rect = e.target.getBoundingClientRect();
+  var X = e.touches[0].pageX - rect.left;
+  var Y = e.touches[0].pageY - rect.top;
+  draw(X, Y);
+}
+
+function touchMove(e) {
+  var rect = e.target.getBoundingClientRect();
+  var X = e.touches[0].pageX - rect.left;
+  var Y = e.touches[0].pageY - rect.top;
+  draw(X, Y);
+}
+
+function touchEnd(e) {
+  mouseX = null;
+  mouseY = null;
+}
+    </script>
+  </body>
+</html>
